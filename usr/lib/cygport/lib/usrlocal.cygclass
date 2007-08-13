@@ -1,0 +1,89 @@
+mycygconf() {
+    if defined USRLOCAL; then
+        cygconf --prefix=/usr/local --exec-prefix=/usr/local \
+                --bindir=/usr/local/bin --sbindir=/usr/local/sbin \
+                --libexecdir=/usr/local/libexec --localstatedir=/var \
+                --sysconfdir=/usr/local/etc \
+                --datarootdir=/usr/local/share \
+                --docdir=/usr/local/share/doc/${P} \
+                --datadir=/usr/local/share --infodir=/usr/local/info \
+                --mandir=/usr/local/man \
+                "${@}"
+    else
+        cygconf "${@}"
+    fi
+}
+
+src_compile() {
+    cd ${S}
+    cygautoreconf
+    cd ${B}
+    mycygconf
+    cygmake
+}
+
+mycyginstall() {
+    if defined USRLOCAL; then
+        case ${USE_DESTDIR:-1} in
+            1|[Yy]|[Yy][Ee][Ss])
+                make ${MAKEOPTS} install DESTDIR=${D} "${@}" || error "make install DESTDIR failed"
+                ;;
+            0|[Nn]|[Nn][Oo])
+                make ${MAKEOPTS} install \
+                    prefix=${D}/usr/local \
+                    bindir=${D}/usr/local/bin/ \
+                    includedir=${D}/usr/local/include \
+                    libdir=${D}/usr/local/lib \
+                    sbindir=${D}/usr/local/sbin \
+                    libexecdir=${D}/usr/local/libexec \
+                    datadir=${D}/usr/local/share \
+                    infodir=${D}/usr/local/info \
+                    mandir=${D}/usr/local/man \
+                    localstatedir=${D}/var \
+                    sysconfdir=${D}/usr/local/etc \
+                    "${@}" \
+                    || error "make install No-DESTDIR failed"
+                ;;
+            *)
+                error "USE_DESTDIR should be set to either 0 or 1 (default).";
+                ;;
+        esac
+    else
+        cyginstall "${@}"
+    fi
+}
+
+src_install() {
+    cd ${B}
+    mycyginstall
+}
+
+__myprepman() {
+    local manpage;
+
+    if [ -d ${D}/usr/local/man ]
+    then
+        echo "Compressing man pages:";
+
+        for manpage in $(find ${D}/usr/local/man -type f ! -name '*.gz' ! -name '*.bz2')
+        do
+            echo "        ${manpage##*/}";
+            gzip -q ${manpage};
+        done
+    fi
+}
+
+__myprepetc() {
+        local d;
+        local s;
+
+        # GNU info pages
+        if [ -d ${D}/usr/local/info ]
+        then
+                prep_gnu_info_usrlocal.sh || error "GNU info postinstall failed"
+        fi
+}
+
+src_postinst() {
+        __prepdoc && __myprepetc && __prepetc && __prepman && __myprepman && __prepstrip;
+}
