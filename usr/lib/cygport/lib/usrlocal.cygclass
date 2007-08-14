@@ -53,11 +53,6 @@ mycyginstall() {
     fi
 }
 
-src_install() {
-    cd ${B}
-    mycyginstall
-}
-
 __myprepman() {
     local manpage;
 
@@ -74,16 +69,15 @@ __myprepman() {
 }
 
 __myprepetc() {
-        local d;
-        local s;
-
-        # GNU info pages
-        if [ -d ${D}/usr/local/info ]
-        then
-                prep_gnu_info_usrlocal.sh || error "GNU info postinstall failed"
-        fi
+    # GNU info pages
+    if [ -d ${D}/usr/local/info ]
+    then
+            prep_gnu_info_usrlocal.sh || error "GNU info postinstall failed"
+    fi
 }
 
-src_postinst() {
-        __prepdoc && __myprepetc && __prepetc && __prepman && __myprepman && __prepstrip;
+src_install() {
+    cd ${B}
+    mycyginstall
+    __myprepetc && __myprepman
 }
