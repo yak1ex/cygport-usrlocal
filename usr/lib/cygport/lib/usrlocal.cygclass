@@ -1,3 +1,13 @@
+if defined USRLOCAL; then
+    prefix=/usr/local
+    mandir=/usr/local/man
+    export PATH="/usr/local/bin:$PATH"
+else
+    prefix=/usr
+    mandir=/usr/share/man
+    export PATH="/usr/bin:$PATH"
+fi
+
 mycygconf() {
     if defined USRLOCAL; then
         cygconf --prefix=/usr/local --exec-prefix=/usr/local \
