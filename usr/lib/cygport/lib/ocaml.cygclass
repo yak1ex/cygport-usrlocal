@@ -1,0 +1,67 @@
+inherit usrlocal
+
+P_=`echo $P | sed 's,_dl-,-,'`
+PN_=`echo $PN | sed 's,_dl,,'`
+
+prep_ocaml_ldconf_fix() {
+  if defined OCAML_LIBDIRS; then
+    dirs=$OCAML_LIBDIRS
+  else
+    dlls=`find ${D} -type f \( -name '*.dll' -o -name '*.so' \)`
+    for dll in $dlls; do
+      dir=`dirname $dll | sed -e "s,${D},,"`
+      case $dir in
+      ${prefix}/lib/ocaml | ${prefix}/lib/ocaml/stublibs) ;;
+      *) dirs="$dirs $dir";;
+      esac
+    done
+  fi
+  dirs=`for dir in $dirs; do echo $dir; done | sort | uniq`
+
+  if [ ! -z "$dirs" ]; then
+
+# postinstall
+
+    dodir /etc/postinstall
+    cat <<EOF >>${D}/etc/postinstall/${PN}.sh
+
+for dir in $dirs; do
+    if ! /bin/grep -q \$dir ${prefix}/lib/ocaml/ld.conf; then
+        echo \$dir >> ${prefix}/lib/ocaml/ld.conf
+    fi
+done
+
+EOF
+
+    chmod +x ${D}/etc/postinstall/${PN}.sh
+
+# preremove
+
+    for dir in $dirs; do
+      dir=`echo $dir | sed -e 's,/,\\\\/,g'`
+      sedarg="$sedarg -e '/^$dir\$/d'"
+    done
+
+    dodir /etc/preremove
+    cat <<EOF >>${D}/etc/preremove/${PN}.sh
+
+sed -i $sedarg ${prefix}/lib/ocaml/ld.conf
+
+EOF
+
+    chmod +x ${D}/etc/preremove/${PN}.sh
+
+  fi
+}
+
+ocamlmakefile_install() {
+    dodir ${prefix}/lib/ocaml/site-lib
+    cd ${B}
+    env DESTDIR=${D} make "OCAMLFIND_INSTFLAGS=-destdir ${D}${prefix}/lib/ocaml/site-lib -ldconf /dev/null" install
+    prep_ocaml_ldconf_fix
+}
+
+src_install() {
+    ocamlmakefile_install
+    __myprepetc && __myprepman
+}
