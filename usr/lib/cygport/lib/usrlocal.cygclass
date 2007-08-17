@@ -1,10 +1,12 @@
 if defined USRLOCAL; then
     prefix=/usr/local
     mandir=/usr/local/man
+    sysconfdir=/usr/local/etc
     export PATH="/usr/local/bin:$PATH"
 else
     prefix=/usr
     mandir=/usr/share/man
+    sysconfdir=/etc
     export PATH="/usr/bin:$PATH"
 fi
 
