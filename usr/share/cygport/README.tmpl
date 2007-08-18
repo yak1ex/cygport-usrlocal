@@ -1,0 +1,52 @@
+${PN}
+------------------------------------------------------------------------
+${LDESCRIPTION}
+
+Runtime requirements:
+${REQUIRMENTS}
+
+Build requirements:
+${BUILD_REQUIRMENTS}
+
+Canonical homepage:
+  ${HOMEPAGE}
+
+Canonical download:
+  ${SRC_URI_}
+
+License:
+${LICENSE}
+
+Language:
+  ${LANGUAGE}
+
+------------------------------------------------------------------------
+
+Build instructions:
+  unpack ${PF}-src.tar.bz2
+    if you use setup to install this src package, it will be
+	 unpacked under /usr/src automatically
+  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
+  cd /usr/src
+  cygport ${PF}.cygport all
+
+This will create:${PKGS}
+
+Or use 'cygport ${PF}.cygport prep' to get a patched source directory
+
+To find out the files included in the binary distribution, you can
+use \"cygcheck -l ${PN}\".
+
+------------------------------------------------------------------------
+
+Port Notes:
+
+----------  ${PF} -- ${DATE} ----------------------------
+Initial release.
+
+For more information about this package, see the upstream documentation in
+/usr/share/doc/${PF}.
+
+This private port maintained by: Yak! <yak_ex@mx.scn.tv>
+Please address all questions to the above address, NOT to the Cygwin 
+mailing list at <cygwin@cygwin.com>.

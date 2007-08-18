@@ -79,7 +79,11 @@ ocamlmakefile_install() {
     prep_ocaml_ldconf_fix
 }
 
-src_install() {
+ocaml_src_install() {
     ocamlmakefile_install
     __myprepetc && __myprepman
+}
+
+src_install() {
+    ocaml_src_install
 }

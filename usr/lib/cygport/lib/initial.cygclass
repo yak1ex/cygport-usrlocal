@@ -1,0 +1,78 @@
+# TODO: for multiple packages
+#   BUILD_REQUIREMENTS
+#   LICENSE
+#   LANGUAGE
+prep_readme() {
+    readme=${C}/README
+    if [ -f ${readme} ] && ! defined REINIT; then
+        return 0
+    fi
+    DATE=`date +%Y/%m/%d`
+#   PKGS
+    n=0
+    while defined pkg_name[${n}]
+    do
+        PKGS="${PKGS}
+  ${pkg_name[${n}]}-${PVR}.tar.bz2"
+        n+=1
+    done
+    PKGS="${PKGS}
+  ${PF}-${PVR}-src.tar.bz2"
+#   SRC_URI_
+    if defined _USE_CVS_FETCH; then
+        warning 'prep_readme: CVS fetch is not supported'
+    elif defined _USE_SVN_FETCH; then
+        warning 'prep_readme: SVN fetch is not supported'
+    else
+        case $SRC_URI_ in
+        mirror://*)
+            warning 'prep_readme: mirror fetch is not supported'
+            ;;
+        *)
+            SRC_URI_=$SRC_URI
+            ;;
+        esac
+    fi
+    if [ -f ${readme} ]; then
+        warning "$readme already exists."
+        readme=${readme}.new
+    fi
+    eval "echo \"`cat ${_privdatadir}/README.tmpl`\"" > ${readme}
+}
+
+prep_hints() {
+    if (( pkg_count > 1 ))
+    then
+        pkg_hint=(${PKG_HINTS:-${PKG_NAMES}})
+    else
+        pkg_hint=(${PKG_HINTS:-setup})
+    fi
+    n=0
+    while defined pkg_name[${n}]
+    do
+        pn=${pkg_name[${n}]}
+        hint=${C}/${pkg_hint[${n}]%.hint}.hint
+        if [ -f ${hint} ]; then
+            if ! defined REINIT; then
+                n+=1
+                continue
+            fi
+            warning "$hint already exists."
+            hint=${hint}.new
+        fi
+        eval "echo \"`cat ${_privdatadir}/setup.hint.tmpl`\"" > ${hint}
+        n+=1
+    done
+}
+
+prep_initial_cygwin_doc() {
+    req=`detect_requirements.sh ${D} 2>/dev/null`
+    REQUIREMENTS=
+    for i in $req; do
+        REQUIREMENTS="$REQUIREMENTS
+  $i"
+    done
+    prep_readme
+    REQUIREMENTS=`echo $req`
+    prep_hints
+}

@@ -1,3 +1,5 @@
+# for general variables
+
 if defined USRLOCAL; then
     prefix=/usr/local
     mandir=/usr/local/man
@@ -9,6 +11,12 @@ else
     sysconfdir=/etc
     export PATH="/usr/bin:$PATH"
 fi
+
+# for handling variant suffix
+
+PN_=${PN%_*}
+_PN=${PN#*_}
+P_=`echo $P | sed "s,_${_PN},,"`
 
 mycygconf() {
     if defined USRLOCAL; then
