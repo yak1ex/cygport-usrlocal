@@ -12,11 +12,11 @@ for target in `find $1 -type f \( -name '*.exe' -o -name '*.dll' -o -name '*.so'
             ;;
         *)
             cano_dll=`echo $dll | sed 's,[^[:alnum:]],_,g'`
-            eval "package=\$${cano_dll}"
+            package=${!cano_dll}
             if [ -z "$package" ]; then
                 1>&2 echo -n "    $dll is included in ... "
                 eval ${cano_dll}=`cygcheck -f $dll | tr -d '\r\n'`
-                eval package="\${$cano_dll}"
+                package=${!cano_dll}
                 if [ ! -z "$package" ]; then
                     echo $package >> $temp
                     1>&2 echo $package

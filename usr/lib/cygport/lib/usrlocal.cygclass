@@ -12,11 +12,18 @@ else
     export PATH="/usr/bin:$PATH"
 fi
 
-# for handling variant suffix
+# for handling variant prefix/suffix
 
 PN_=${PN%_*}
+PN_=${PN_#cygwin-}
+PN_=${PN_#mingw-}
 _PN=${PN#*_}
-P_=`echo $P | sed "s,_${_PN},,"`
+case $PN in
+cygwin-*) PN__=cygwin-;;
+mingw-*) PN__=mingw-;;
+esac
+P_=${P%${_PN}}
+P_=${P#${PN__}}
 
 mycygconf() {
     if defined USRLOCAL; then

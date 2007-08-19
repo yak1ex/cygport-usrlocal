@@ -3,13 +3,18 @@
 #   LICENSE
 #   LANGUAGE
 prep_readme() {
+    local -i n=0
+    local readme
+    local DATE
+    local PKGS
+    local SRC_URI_
+
     readme=${C}/README
     if [ -f ${readme} ] && ! defined REINIT; then
         return 0
     fi
     DATE=`date +%Y/%m/%d`
 #   PKGS
-    n=0
     while defined pkg_name[${n}]
     do
         PKGS="${PKGS}
@@ -17,7 +22,7 @@ prep_readme() {
         n+=1
     done
     PKGS="${PKGS}
-  ${PF}-${PVR}-src.tar.bz2"
+  ${PF}-src.tar.bz2"
 #   SRC_URI_
     if defined _USE_CVS_FETCH; then
         warning 'prep_readme: CVS fetch is not supported'
@@ -25,8 +30,11 @@ prep_readme() {
         warning 'prep_readme: SVN fetch is not supported'
     else
         case $SRC_URI_ in
+        mirror://sourceforge/*)
+            SRC_URI_=http://downloads.sourceforge.net/${SRC_URI#mirror://sourceforge/}
+            ;;
         mirror://*)
-            warning 'prep_readme: mirror fetch is not supported'
+            warning 'prep_readme: mirror fetch of this type is not yet supported'
             ;;
         *)
             SRC_URI_=$SRC_URI
@@ -41,13 +49,16 @@ prep_readme() {
 }
 
 prep_hints() {
+    local -i n=0
+    local -a pkg_hint
+    local hint
+
     if (( pkg_count > 1 ))
     then
         pkg_hint=(${PKG_HINTS:-${PKG_NAMES}})
     else
         pkg_hint=(${PKG_HINTS:-setup})
     fi
-    n=0
     while defined pkg_name[${n}]
     do
         pn=${pkg_name[${n}]}
@@ -66,8 +77,8 @@ prep_hints() {
 }
 
 prep_initial_cygwin_doc() {
-    req=`detect_requirements.sh ${D} 2>/dev/null`
-    REQUIREMENTS=
+    local req=`detect_requirements.sh ${D} 2>/dev/null`
+    local REQUIREMENTS=
     for i in $req; do
         REQUIREMENTS="$REQUIREMENTS
   $i"
