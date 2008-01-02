@@ -26,15 +26,23 @@ P_=${P%${_PN}}
 P_=${P#${PN__}}
 
 mycygconf() {
+    local newoption
     if defined USRLOCAL; then
+        case $OLD_CONFIGURE in
+        [Yy][Ee][Ss])
+            newoption=
+            ;;
+        *)
+            newoption="--docdir=/usr/local/share/doc/${P} --datarootdir=/usr/local/share"
+            ;;
+        esac
         cygconf --prefix=/usr/local --exec-prefix=/usr/local \
                 --bindir=/usr/local/bin --sbindir=/usr/local/sbin \
                 --libexecdir=/usr/local/libexec --localstatedir=/var \
                 --sysconfdir=/usr/local/etc \
-                --datarootdir=/usr/local/share \
-                --docdir=/usr/local/share/doc/${P} \
                 --datadir=/usr/local/share --infodir=/usr/local/info \
                 --mandir=/usr/local/man \
+                $newoption \
                 "${@}"
     else
         cygconf "${@}"
