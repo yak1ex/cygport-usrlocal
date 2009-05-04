@@ -7,6 +7,9 @@ OCAML_VER=0.1-1
 
 dist: dist-usrlocal dist-ocaml
 
+install:
+	for i in usr/lib/cygport/lib/*.cygclass usr/lib/cygport/bin/* usr/share/cygport/*; do if [ $$i -nt /$$i ]; then echo Update $$i; cp $$i /$$i; fi; done
+
 dist-usrlocal:
 	tar cvjf cygport-usrlocal-$(USRLOCAL_VER).tar.bz2 --exclude .svn --exclude ocaml.cygclass etc usr
 
