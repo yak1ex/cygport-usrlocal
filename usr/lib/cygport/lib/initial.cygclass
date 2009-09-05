@@ -1,3 +1,23 @@
+_update_readme() {
+    local -i n=0
+    local readme
+    local expr
+    local SRC_URI_
+
+    readme=$1
+    SRC_URI_=$2
+
+    expr=";s,${PN}-[0-9][^ ]*-src\.tar.bz2,${PF}-src.tar.bz2,;s,${PN}-[0-9][^ ]*\.cygport,${PF}.cygport,;s,/usr/share/doc/${PN}-[0-9][^ ]*,/usr/share/doc/${PF}.,"
+    while defined pkg_name[${n}]
+    do
+        expr="${expr};s,${pkg_name[${n}]}-[0-9][^ ]*\.tar\.bz2,${pkg_name[${n}]}-${PVR}.tar.bz2,"
+        n+=1
+    done
+    mv ${readme} ${readme}.bak
+    sed -e "\,${SRC_URI_},d;s,Canonical download:,Canonical download:\n  ${SRC_URI_},${expr}" ${readme}.bak > ${readme}
+    warning "$readme already exists, updated."
+}
+
 # TODO: for multiple packages
 #   BUILD_REQUIREMENTS
 #   LICENSE
@@ -10,19 +30,6 @@ prep_readme() {
     local SRC_URI_
 
     readme=${C}/README
-    if [ -f ${readme} ] && ! defined REINIT; then
-        return 0
-    fi
-    DATE=`date +%Y/%m/%d`
-#   PKGS
-    while defined pkg_name[${n}]
-    do
-        PKGS="${PKGS}
-  ${pkg_name[${n}]}-${PVR}.tar.bz2"
-        n+=1
-    done
-    PKGS="${PKGS}
-  ${PF}-src.tar.bz2"
 #   SRC_URI_
     if defined _USE_CVS_FETCH; then
         warning 'prep_readme: CVS fetch is not supported'
@@ -41,6 +48,22 @@ prep_readme() {
             ;;
         esac
     fi
+    if [ -f ${readme} ] && ! defined REINIT; then
+        if defined UPDATE; then
+             _update_readme $readme $SRC_URI_
+        fi
+        return 0
+    fi
+    DATE=`date +%Y/%m/%d`
+#   PKGS
+    while defined pkg_name[${n}]
+    do
+        PKGS="${PKGS}
+  ${pkg_name[${n}]}-${PVR}.tar.bz2"
+        n+=1
+    done
+    PKGS="${PKGS}
+  ${PF}-src.tar.bz2"
     if [ -f ${readme} ]; then
         warning "$readme already exists."
         readme=${readme}.new
