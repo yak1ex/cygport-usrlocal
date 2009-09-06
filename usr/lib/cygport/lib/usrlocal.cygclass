@@ -17,13 +17,14 @@ fi
 PN_=${PN%_*}
 PN_=${PN_#cygwin-}
 PN_=${PN_#mingw-}
-_PN=${PN#*_}
+if test ${PN} != ${PN_}; then
+  _PN=_${PN#*_}
+fi
 case $PN in
 cygwin-*) PN__=cygwin-;;
 mingw-*) PN__=mingw-;;
 esac
-P_=${P%${_PN}}
-P_=${P#${PN__}}
+P_=${PN_}-${PV}
 
 mycygconf() {
     local newoption

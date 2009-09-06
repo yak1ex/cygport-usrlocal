@@ -5,16 +5,6 @@ ocamllibdir=${prefix}/lib/ocaml
 sitelibdir=${prefix}/lib/ocaml/site-lib
 stublibdir=${prefix}/lib/ocaml/stublibs
 
-# for handling _dl suffix
-P_=`echo $P | sed 's,_dl-,-,'`
-PN_=`echo $PN | sed 's,_dl,,'`
-
-if echo $PN | grep -q _dl$; then
-    _PN=_dl
-else
-    _PN=
-fi
-
 prep_ocaml_ldconf_fix() {
     if defined PKG_NAME; then
         pn=$PKG_NAME
