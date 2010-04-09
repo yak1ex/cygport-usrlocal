@@ -119,3 +119,30 @@ src_install() {
     mycyginstall
     __myprepetc && __myprepman
 }
+
+mydodoc() {
+	case "${_docinto_dir}" in
+		'')	docdir=${prefix}/share/doc/${PN} ;;
+		/*)	docdir=${prefix}/share/doc${_docinto_dir} ;;
+		*)	docdir=${prefix}/share/doc/${PN}/${_docinto_dir} ;;
+	esac
+
+	dodir ${docdir}
+
+	for i
+	do
+		if [ -f ${i} -o -L ${i} ]
+		then
+			if [ "x$(file -b ${i})" != "xempty" -a ! -f ${D}${docdir}/${i} ]
+			then
+				__doinstall 0644 ${i} ${docdir} || error "dodoc ${i} failed"
+			fi
+		elif [ -f ${i}.txt -o -L ${i}.txt ]
+		then
+			if [ "x$(file -b ${i}.txt)" != "xempty" -a ! -f ${D}${docdir}/${i}.txt ]
+			then
+				__doinstall 0644 ${i}.txt ${docdir} || error "dodoc ${i}.txt failed"
+			fi
+		fi
+	done
+}
