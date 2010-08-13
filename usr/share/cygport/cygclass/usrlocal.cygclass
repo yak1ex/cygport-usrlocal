@@ -120,6 +120,15 @@ src_install() {
     __myprepetc && __myprepman
 }
 
+mydobin() {
+	dodir ${prefix}/bin
+
+	for i
+	do
+		__doinstall 0755 ${i} ${prefix}/bin || error "dobin ${i} failed"
+	done
+}
+
 mydodoc() {
 	case "${_docinto_dir}" in
 		'')	docdir=${prefix}/share/doc/${PN} ;;
@@ -144,6 +153,17 @@ mydodoc() {
 				__doinstall 0644 ${i}.txt ${docdir} || error "dodoc ${i}.txt failed"
 			fi
 		fi
+	done
+}
+
+mydolib() {
+	dodir ${prefix}/lib
+	for i
+	do
+		case ${i} in
+			*.la) __doinstall 0755 ${i} ${prefix}/lib || error "dolib ${i} failed" ;;
+			*)    __doinstall 0644 ${i} ${prefix}/lib || error "dolib ${i} failed" ;;
+		esac
 	done
 }
 
