@@ -1,4 +1,4 @@
-USRLOCAL_VER=0.5-1
+USRLOCAL_VER=0.6-1
 OCAML_VER=0.3-1
 
 .PHONY: install dcommit
