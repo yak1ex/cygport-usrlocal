@@ -3,6 +3,7 @@ inherit usrlocal
 # frequently used
 ocamllibdir=${prefix}/lib/ocaml
 sitelibdir=${prefix}/lib/ocaml/site-lib
+sitelibstublibdir=${prefix}/lib/ocaml/site-lib/stublibs
 stublibdir=${prefix}/lib/ocaml/stublibs
 
 prep_ocaml_ldconf_fix() {
@@ -18,7 +19,7 @@ prep_ocaml_ldconf_fix() {
         for dll in $dlls; do
             dir=`dirname $dll | sed -e "s,${D},,"`
             case $dir in
-            ${ocamllibdir} | ${stublibdir}) ;;
+            ${ocamllibdir} | ${stublibdir} | ${sitelibstublibdir}) ;;
             *) dirs="$dirs $dir";;
             esac
         done
@@ -64,6 +65,7 @@ EOF
 
 ocamlmakefile_install() {
     dodir ${sitelibdir}
+    dodir ${sitelibdir}/stublibs
     cd ${B}
     env DESTDIR=${D} make "OCAMLFIND_INSTFLAGS=-destdir ${D}${prefix}/lib/ocaml/site-lib -ldconf /dev/null" ${1:-install}
     prep_ocaml_ldconf_fix
