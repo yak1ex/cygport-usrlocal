@@ -1,5 +1,5 @@
 USRLOCAL_VER=0.6-1
-OCAML_VER=0.3-1
+OCAML_VER=0.4-1
 
 .PHONY: install dcommit
 .PHONY: dist dist-usrlocal  dist-ocaml
