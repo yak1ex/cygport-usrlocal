@@ -211,11 +211,18 @@ __myprep_libtool_modules() {
 
 		if [ "x${shouldnotlink}" != "xyes" ]
 		then
+			if [ -z "${dlname}" ]; then
+				continue
+			fi
 			origdlname=${dlname}
-			while [ $(realpath ${ltlibdir}/${dlname%/bin/*}) != ${D}${prefix} ]
-			do
-				dlname=../${dlname}
-			done
+			case ${dlname} in
+			*/bin/*)
+				while [ $(realpath ${ltlibdir}/${dlname%/bin/*}) != ${D}${prefix} ]
+				do
+					dlname=../${dlname}
+				done
+				;;
+			esac
 			if [ ${dlname} != ${origdlname} ]
 			then
 				pushd ${ltlibdir}
