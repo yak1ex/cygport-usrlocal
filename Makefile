@@ -12,7 +12,7 @@ install:
 	for i in usr/lib/cygport/bin/* usr/share/cygport/*.tmpl usr/share/cygport/cygclass/*.cygclass; do if [ $$i -nt /$$i ]; then echo Update $$i; cp $$i /$$i; fi; done
 
 dist-usrlocal:
-	tar cvjf cygport-usrlocal-$(USRLOCAL_VER).tar.bz2 --exclude yak-ocaml.cygclass etc usr
+	tar cvjf cygport-usrlocal-$(USRLOCAL_VER).tar.bz2 --exclude yak-ocaml.cygclass usr
 
 tag-usrlocal:
 	git tag cygport-usrlocal-$(USRLOCAL_VER)
