@@ -110,7 +110,16 @@ __myprepetc() {
     # GNU info pages
     if [ -d ${D}/usr/local/info ]
     then
-            prep_gnu_info_usrlocal.sh || error "GNU info postinstall failed"
+        rm -f ${D}/usr/local/info/dir
+
+        echo "Compressing info pages:";
+
+        find ${D}/usr/local/info -type f -name '*.info*' ! -name '*.gz' ! -name '*.bz2' -print0 | \
+        while read -d $'\0' infopage
+        do
+            echo "        ${infopage##*/}";
+            gzip -q "${infopage}";
+        done
     fi
 }
 
