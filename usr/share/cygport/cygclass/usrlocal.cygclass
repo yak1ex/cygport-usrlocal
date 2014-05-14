@@ -227,7 +227,7 @@ __myprep_libtool_modules() {
 			case ${dlname} in
 			*/bin/*)
 				# Hack for symlink-ed place e.g. /home shared between 32/64
-				rootprefix=$(realpath ${D}${prefix})
+				realprefix=$(realpath ${D}${prefix})
 				while [ $(realpath ${ltlibdir}/${dlname%/bin/*}) != ${realprefix} ]
 				do
 					dlname=../${dlname}
