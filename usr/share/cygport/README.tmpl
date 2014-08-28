@@ -1,6 +1,6 @@
 ${PN}
 ------------------------------------------------------------------------
-${LDESCRIPTION}
+${DESCRIPTION}
 
 Runtime requirements:${REQUIREMENTS}
 
@@ -22,7 +22,7 @@ Language:
 ------------------------------------------------------------------------
 
 Build instructions:
-  unpack ${PF}-src.tar.bz2
+  unpack ${PF}-src.tar.xz
     if you use setup to install this src package, it will be
 	 unpacked under /usr/src automatically
   If you want to set prefix as /usr/local, set environment variable USRLOCAL.
@@ -31,7 +31,7 @@ Build instructions:
 
 This will create:${PKGS}
 
-Or use 'cygport ${PF}.cygport prep' to get a patched source directory
+Or use 'cygport ${PN}.cygport prep' to get a patched source directory
 
 To find out the files included in the binary distribution, you can
 use \"cygcheck -l ${PN}\".
