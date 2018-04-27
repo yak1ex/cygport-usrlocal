@@ -1,3 +1,4 @@
+# TODO: __host_prefix
 # for general variables
 
 if defined USRLOCAL; then
@@ -61,24 +62,30 @@ src_compile() {
 }
 
 mycyginstall() {
+    local prefix
+
     if defined USRLOCAL; then
         case ${USE_DESTDIR:-1} in
             1|[Yy]|[Yy][Ee][Ss])
                 make ${MAKEOPTS} install DESTDIR=${D} "${@}" || error "make install DESTDIR failed"
                 ;;
             0|[Nn]|[Nn][Oo])
+                prefix=/usr/local
                 make ${MAKEOPTS} install \
-                    prefix=${D}/usr/local \
-                    bindir=${D}/usr/local/bin/ \
-                    includedir=${D}/usr/local/include \
-                    libdir=${D}/usr/local/lib \
-                    sbindir=${D}/usr/local/sbin \
-                    libexecdir=${D}/usr/local/libexec \
-                    datadir=${D}/usr/local/share \
-                    infodir=${D}/usr/local/info \
-                    mandir=${D}/usr/local/man \
+                    prefix=${D}${prefix} \
+                    exec_prefix=${D}${prefix} \
+                    bindir=${D}${prefix}/bin/ \
+                    includedir=${D}${prefix}/include \
+                    libdir=${D}${prefix}/${MULTILIB_LIBDIR-lib} \
+                    sbindir=${D}${prefix}/sbin \
+                    libexecdir=${D}${prefix}/libexec \
+                    datadir=${D}${prefix}/share \
+                    datarootdir=${D}${prefix}/share \
+                    docdir=${D}${prefix}/share/doc/${PN} \
+                    infodir=${D}${prefix}/share/info \
+                    mandir=${D}${prefix}/share/man \
                     localstatedir=${D}/var \
-                    sysconfdir=${D}/usr/local/etc \
+                    sysconfdir=${D}${prefix}/etc \
                     "${@}" \
                     || error "make install No-DESTDIR failed"
                 ;;
@@ -176,11 +183,13 @@ mydolib() {
 	done
 }
 
+# Hack for symlink-ed place e.g. /home shared between 32/64
 __myprep_libtool_modules() {
 	local ltlibs ltlibdir ltlibname ltversion
 	local dlname origdlname library_names old_library inherited_linker_flags \
 	      dependency_libs weak_library_names current age revision \
-		  installed shouldnotlink dlopen dlpreopen libdir realprefix
+		  installed shouldnotlink dlopen dlpreopen libdir rep_requires realprefix
+	local keep=${KEEP_LA_FILES:-none}
 
 	pushd ${D}
 
@@ -212,37 +221,72 @@ __myprep_libtool_modules() {
 		# check that all library members were installed
 		for l in dlname library_names old_library
 		do
-			if defined ${l} && [ ! -f ${ltlibdir}/${!l} ]
+			if defined ${l}
 			then
-				error "${!l} was not installed"
+				# on ELF platforms, there are multiple library_names
+				for il in ${!l}
+				do
+					if [ ! -f ${ltlibdir}/${il} ]
+					then
+						error "${il} was not installed"
+					fi
+				done
 			fi
 		done
 
 		if [ "x${shouldnotlink}" != "xyes" ]
 		then
-			if [ -z "${dlname}" ]; then
+			if [ "x${dlname}" = "x" ]
+			then
+				# static-only library, hopefully for good reason...
+				case ${keep} in
+					all|static) ;;
+					none|shared|module*) rm -f ${lib_la} ;;
+					*) error "KEEP_LA_FILES: unknown value: ${KEEP_LA_FILES}" ;;
+				esac
 				continue
 			fi
-			origdlname=${dlname}
-			case ${dlname} in
-			*/bin/*)
-				# Hack for symlink-ed place e.g. /home shared between 32/64
-				realprefix=$(realpath ${D}${prefix})
-				while [ $(realpath ${ltlibdir}/${dlname%/bin/*}) != ${realprefix} ]
-				do
-					dlname=../${dlname}
-				done
+
+			# would otherwise be CHOST, but gcc ships $target libraries
+			case ${CTARGET} in
+			*-*-cygwin*|*-*-mingw*|*-*-msys*)
+				if [ -f ${lib_la%.la}.dll.a ]
+				then
+					# implibs do NOT need to be executable
+					chmod 0644 ${lib_la%.la}.dll.a
+				fi
+				if test ${CTARGET} != ${CHOST} # cross-compiler, use sysroot
+				then
+					dodir /usr/${CTARGET}/sys-root/$(__target_prefix)/bin
+					mv ${ltlibdir}/${dlname} ${D}/usr/${CTARGET}/sys-root/$(__target_prefix)/bin/
+				else
+					origdlname=${dlname}
+					# Hack for symlink-ed place e.g. /home shared between 32/64
+					realprefix=$(readlink -f ${D}$(__host_prefix))
+
+					while [ $(readlink -f ${ltlibdir}/${dlname%/bin/*}) != ${realprefix} ]
+					do
+						dlname=../${dlname}
+					done
+
+					if [ ${dlname} != ${origdlname} ]
+					then
+						pushd ${ltlibdir}
+						mkdir -p ${dlname%/*}
+						mv ${origdlname} ${dlname}
+						popd
+						echo "        ${lib_la}"
+						sed -i -e "s|^\(dlname=\).*|\1'${dlname}'|" ${lib_la}
+					fi
+				fi
 				;;
 			esac
-			if [ ${dlname} != ${origdlname} ]
-			then
-				pushd ${ltlibdir}
-				mkdir -p ${dlname%/*}
-				mv ${origdlname} ${dlname}
-				popd
-				echo "        ${lib_la}"
-				sed -i -e "s|^\(dlname=\).*|\1'${dlname}'|" ${lib_la}
-			fi
+
+			case ${keep} in
+				all|shared) ;;
+				none|static|module*) rm -f ${lib_la} ;;
+				*) error "KEEP_LA_FILES: unknown value: ${KEEP_LA_FILES}" ;;
+			esac
 
 			# The rest only applies if shouldnotlink=yes (-module)
 			continue
@@ -268,6 +312,12 @@ __myprep_libtool_modules() {
 
 		# static and import libraries are pointless for modules
 		rm -f ${ltlibdir}/${ltlibname}.a ${ltlibdir}/${ltlibname}.dll.a
+
+		case ${keep} in
+			all|module*) ;;
+			none|shared|static) rm -f ${lib_la}; continue ;;
+			*) error "KEEP_LA_FILES: unknown value: ${KEEP_LA_FILES}" ;;
+		esac
 
 		cat > ${lib_la} <<-_EOF
 			# ${ltlibname}.la - a libtool library file
@@ -314,23 +364,38 @@ __myprep_libtool_modules() {
 			# Directory that this library needs to be installed in:
 			libdir='${libdir}'
 			_EOF
+
+		if defined rep_requires
+		then
+			cat >> ${lib_la} <<-_EOF
+
+				# Librep module dependencies
+				rep_requires='${rep_requires}'
+				_EOF
+
+			unset rep_requires
+		fi
 	done
+
 	popd
 }
 
 __mysrc_postinst() {
 	__prepdoc;
 	__prep_symlinks;
+	__prepemacs;
 	__prepetc;
 	__prepman;
 	__prepinfo;
+	__prepperl;
 	__prepvargames;
 	__myprep_libtool_modules;
 	__prepstrip;
-	__prepuac;
+	__prepdebugsrc;
 	__prep_empty_dirs;
 }
 
+# Calling __src_postinst will be parsed after this replacement, so that we can override
 alias __src_postinst=__mysrc_postinst
 # Clear aliases to prevent unintended replacement
 eval `alias | sed -e '/__my/d;s/^/un/;s/=.*/;/'`
