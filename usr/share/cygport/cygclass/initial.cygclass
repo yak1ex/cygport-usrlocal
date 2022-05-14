@@ -1,3 +1,22 @@
+# Usage:
+#
+# initial only
+# src_install() {
+#     cd ${B}
+#     cyginstall
+#
+#     prep_initial_cygwin_doc
+# }
+#
+# with usrlocal
+# src_install() {
+#     cd ${B}
+#     mycyginstall
+#
+#     prep_initial_cygwin_doc
+#     __myprepetc && __myprepman
+# }
+
 _update_readme() {
     local -i n=0
     local readme
