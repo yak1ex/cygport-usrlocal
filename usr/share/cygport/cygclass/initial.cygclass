@@ -71,34 +71,6 @@ prep_readme() {
     eval "echo \"`cat ${_privdatadir}/README.tmpl`\"" > ${readme}
 }
 
-prep_hints() {
-    local -i n=0
-    local -a pkg_hint
-    local hint
-
-    if (( pkg_count > 1 ))
-    then
-        pkg_hint=(${PKG_HINTS:-${PKG_NAMES}})
-    else
-        pkg_hint=(${PKG_HINTS:-setup})
-    fi
-    while defined pkg_name[${n}]
-    do
-        pn=${pkg_name[${n}]}
-        hint=${C}/${pkg_hint[${n}]%.hint}.hint
-        if [ -f ${hint} ]; then
-            if ! defined REINIT; then
-                n+=1
-                continue
-            fi
-            warning "$hint already exists."
-            hint=${hint}.new
-        fi
-        eval "echo \"`cat ${_privdatadir}/setup.hint.tmpl`\"" > ${hint}
-        n+=1
-    done
-}
-
 prep_initial_cygwin_doc() {
     local req=`detect_requirements.sh ${D} 2>/dev/null`
     local REQUIREMENTS=
@@ -108,5 +80,4 @@ prep_initial_cygwin_doc() {
     done
     prep_readme
     REQUIREMENTS=`echo $req`
-    prep_hints
 }
