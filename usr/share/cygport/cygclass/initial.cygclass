@@ -26,10 +26,10 @@ _update_readme() {
     readme=$1
     SRC_URI_=$2
 
-    expr=";s,${PN}-[0-9][^ ]*-src\.tar.bz2,${PF}-src.tar.bz2,;s,${PN}-[0-9][^ ]*\.cygport,${PF}.cygport,;s,/usr/share/doc/${PN}-[0-9][^ ]*,/usr/share/doc/${PF}.,"
+    expr=";s,${PN}-[0-9][^ ]*-src\\.tar.\\(bz2\\|xz\\),${PF}-src.tar.xz,;s,${PN}-[0-9][^ ]*\\.cygport,${PF}.cygport,;s,/usr/share/doc/${PN}-[0-9][^ ]*,/usr/share/doc/${PF}.,"
     while defined pkg_name[${n}]
     do
-        expr="${expr};s,${pkg_name[${n}]}-[0-9][^ ]*\.tar\.bz2,${pkg_name[${n}]}-${PVR}.tar.bz2,"
+        expr="${expr};s,${pkg_name[${n}]}-[0-9][^ ]*-[0-9][0-9]*\\.tar\\.\\(bz2\\|xz\\),${pkg_name[${n}]}-${PVR}.tar.xz,"
         n+=1
     done
     mv ${readme} ${readme}.bak
@@ -78,11 +78,11 @@ prep_readme() {
     while defined pkg_name[${n}]
     do
         PKGS="${PKGS}
-  ${pkg_name[${n}]}-${PVR}.tar.bz2"
+  ${pkg_name[${n}]}-${PVR}.tar.xz"
         n+=1
     done
     PKGS="${PKGS}
-  ${PF}-src.tar.bz2"
+  ${PF}-src.tar.xz"
     if [ -f ${readme} ]; then
         warning "$readme already exists."
         readme=${readme}.new
