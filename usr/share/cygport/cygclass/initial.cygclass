@@ -91,9 +91,11 @@ prep_readme() {
 }
 
 prep_initial_cygwin_doc() {
-    local req=`detect_requirements.sh ${D} 2>/dev/null`
-    local REQUIREMENTS=
-    for i in $req; do
+    local REQUIREMENTS
+    local pkg_bin_requires=$(__list_deps $(sort -fu ${T}/.${pkg_name[${n}]}.lst | sed -e '\|/$|d;s| |^_^|g') \
+					| sed -e "/^${pkg_name[${n}]}-[0-9].*$/d;s/-[0-9].*$//g" \
+					| sort -fu | sed -e ':a;N;$!ba;s/\n/ /g' )
+    for i in $pkg_bin_requires $REQUIRES; do
         REQUIREMENTS="$REQUIREMENTS
   $i"
     done
